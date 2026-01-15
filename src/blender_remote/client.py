@@ -163,30 +163,44 @@ class BlenderMCPClient:
         BlenderConnectionError
             If connection fails or no data received.
         """
+        data = bytearray()
+        while True:
+            packet = sock.recv(buffer_size)
+            if not packet:  # Connection closed by client
+                break
+            data.extend(packet)
+            # Try to parse only if you have a reason to believe it's complete
+            # (e.g., detecting a closing brace '}')
+            if data.endswith(b'}') or data.endswith(b']'):
+                try:
+                    return data
+                except json.JSONDecodeError:
+                    continue # Keep receiving if JSON is still incomplete
+        
         # BLD Remote MCP sends complete JSON responses in a single packet
         # So we can simplify this to just receive once
-        try:
-            data = sock.recv(buffer_size)
-            if not data:
-                raise BlenderConnectionError(
-                    "Connection closed before receiving any data"
-                )
+        #try:
+        #    data = sock.recv(buffer_size)
+        #    if not data:
+        #        raise BlenderConnectionError(
+        #            "Connection closed before receiving any data"
+        #        )
 
-            # Validate that it's valid JSON
-            try:
-                json.loads(data.decode("utf-8"))
-                return data
-            except json.JSONDecodeError as e:
-                raise BlenderConnectionError(f"Invalid JSON response: {str(e)}")
+        #    # Validate that it's valid JSON
+        #    try:
+        #        json.loads(data.decode("utf-8"))
+        #        return data
+        #    except json.JSONDecodeError as e:
+        #        raise BlenderConnectionError(f"Invalid JSON response: {str(e)}")
 
-        except socket.timeout:
-            raise BlenderConnectionError("Timeout while receiving response")
-        except (ConnectionError, BrokenPipeError, ConnectionResetError) as e:
-            raise BlenderConnectionError(f"Connection error while receiving: {str(e)}")
-        except Exception as e:
-            if isinstance(e, BlenderConnectionError):
-                raise
-            raise BlenderConnectionError(f"Unexpected error while receiving: {str(e)}")
+        #except socket.timeout:
+        #    raise BlenderConnectionError("Timeout while receiving response")
+        #except (ConnectionError, BrokenPipeError, ConnectionResetError) as e:
+        #    raise BlenderConnectionError(f"Connection error while receiving: {str(e)}")
+        #except Exception as e:
+        #    if isinstance(e, BlenderConnectionError):
+        #        raise
+        #    raise BlenderConnectionError(f"Unexpected error while receiving: {str(e)}")
 
     def execute_command(
         self, command_type: str, params: Optional[Dict[str, Any]] = None
