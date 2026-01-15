@@ -173,6 +173,7 @@ class BlenderMCPClient:
             # (e.g., detecting a closing brace '}')
             if data.endswith(b'}') or data.endswith(b']'):
                 try:
+                    json.loads(data.decode("utf-8"))
                     return data
                 except json.JSONDecodeError:
                     continue # Keep receiving if JSON is still incomplete
