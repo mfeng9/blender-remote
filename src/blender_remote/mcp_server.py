@@ -482,8 +482,13 @@ async def get_viewport_screenshot(
 
 
 @mcp.tool()
-async def put_persist_data(key: str, data: Any, ctx: Context) -> Dict[str, Any]:
-    """Store data with a key in Blender's persistent storage."""
+async def put_persist_data(key: str, data: str, ctx: Context) -> Dict[str, Any]:
+    """Store data with a key in Blender's persistent storage.
+    """
+    # The original function signiture is incompatible with Llama.cpp standard
+    # because of Any, changed it to str
+    # async def put_persist_data(key: str, data: Any, ctx: Context) -> Dict[str, Any]:
+
     await ctx.info(f"Storing data with key: {key}")
 
     if blender_conn is None:
@@ -509,7 +514,7 @@ async def put_persist_data(key: str, data: Any, ctx: Context) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def get_persist_data(key: str, ctx: Context, default: Any = None) -> Dict[str, Any]:
+async def get_persist_data(key: str, ctx: Context, default: Optional[Any] = None) -> Dict[str, Any]:
     """Retrieve data by key from Blender's persistent storage."""
     await ctx.info(f"Retrieving data with key: {key}")
 
